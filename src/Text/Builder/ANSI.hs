@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 
-module Text.Builder.ANSI
-  ( -- $intro
+module Text.Builder.ANSI (
+    -- $intro
 
     -- * Foreground color
     black,
@@ -51,331 +51,337 @@ module Text.Builder.ANSI
     frame,
     encircle,
     overline,
-  )
-where
+) where
 
 #if !MIN_VERSION_base(4,13,0)
-import Data.Semigroup ((<>))
+import           Data.Semigroup             ((<>))
 #endif
-import Text.Builder (Builder)
-import qualified Text.Builder as Builder
+import Data.Text.Internal.Builder (Builder)
+import qualified Data.Text.Internal.Builder as Builder
+import qualified Data.Text.Internal.Builder as Lazy.Builder
+import qualified Data.Text.Lazy.Builder.Int as Lazy.Builder
 import Data.Word (Word8)
 import Foreign.C (CInt (CInt))
 import System.IO.Unsafe (unsafePerformIO)
 
--- $intro
---
--- Text styling for ANSI terminals using SGR codes, as defined by the
--- <https://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf ECMA-48>
--- standard.
---
--- Supports foreground\/background color, bold\/faint intensity, italic,
--- single\/double underline, strikethrough, frame, encircle, and overline escape
--- sequences. Some styles may not work on your terminal.
---
--- Also features terminal detection, so redirecting styled output to a file will
--- automatically strip the ANSI escape sequences.
+{- $intro
+
+ Text styling for ANSI terminals using SGR codes, as defined by the
+ <https://www.ecma-international.org/publications/files/ECMA-ST/Ecma-048.pdf ECMA-48>
+ standard.
+
+ Supports foreground\/background color, bold\/faint intensity, italic,
+ single\/double underline, strikethrough, frame, encircle, and overline escape
+ sequences. Some styles may not work on your terminal.
+
+ Also features terminal detection, so redirecting styled output to a file will
+ automatically strip the ANSI escape sequences.
+-}
 
 -- | Black foreground.
 black :: Builder -> Builder
 black =
-  foreground (Builder.string "30")
+    foreground (Builder.fromString "30")
 {-# INLINE black #-}
 
 -- | Red foreground.
 red :: Builder -> Builder
 red =
-  foreground (Builder.string "31")
+    foreground (Builder.fromString "31")
 {-# INLINE red #-}
 
 -- | Green foreground.
 green :: Builder -> Builder
 green =
-  foreground (Builder.string "32")
+    foreground (Builder.fromString "32")
 {-# INLINE green #-}
 
 -- | Yellow foreground.
 yellow :: Builder -> Builder
 yellow =
-  foreground (Builder.string "33")
+    foreground (Builder.fromString "33")
 {-# INLINE yellow #-}
 
 -- | Blue foreground.
 blue :: Builder -> Builder
 blue =
-  foreground (Builder.string "34")
+    foreground (Builder.fromString "34")
 {-# INLINE blue #-}
 
 -- | Magenta foreground.
 magenta :: Builder -> Builder
 magenta =
-  foreground (Builder.string "35")
+    foreground (Builder.fromString "35")
 {-# INLINE magenta #-}
 
 -- | Cyan foreground.
 cyan :: Builder -> Builder
 cyan =
-  foreground (Builder.string "36")
+    foreground (Builder.fromString "36")
 {-# INLINE cyan #-}
 
 -- | White foreground.
 white :: Builder -> Builder
 white =
-  foreground (Builder.string "37")
+    foreground (Builder.fromString "37")
 {-# INLINE white #-}
 
 -- | Bright black foreground.
 brightBlack :: Builder -> Builder
 brightBlack =
-  foreground (Builder.string "90")
+    foreground (Builder.fromString "90")
 {-# INLINE brightBlack #-}
 
 -- | Bright red foreground.
 brightRed :: Builder -> Builder
 brightRed =
-  foreground (Builder.string "91")
+    foreground (Builder.fromString "91")
 {-# INLINE brightRed #-}
 
 -- | Bright green foreground.
 brightGreen :: Builder -> Builder
 brightGreen =
-  foreground (Builder.string "92")
+    foreground (Builder.fromString "92")
 {-# INLINE brightGreen #-}
 
 -- | Bright yellow foreground.
 brightYellow :: Builder -> Builder
 brightYellow =
-  foreground (Builder.string "93")
+    foreground (Builder.fromString "93")
 {-# INLINE brightYellow #-}
 
 -- | Bright blue foreground.
 brightBlue :: Builder -> Builder
 brightBlue =
-  foreground (Builder.string "94")
+    foreground (Builder.fromString "94")
 {-# INLINE brightBlue #-}
 
 -- | Bright magenta foreground.
 brightMagenta :: Builder -> Builder
 brightMagenta =
-  foreground (Builder.string "95")
+    foreground (Builder.fromString "95")
 {-# INLINE brightMagenta #-}
 
 -- | Bright cyan foreground.
 brightCyan :: Builder -> Builder
 brightCyan =
-  foreground (Builder.string "96")
+    foreground (Builder.fromString "96")
 {-# INLINE brightCyan #-}
 
 -- | Bright white foreground.
 brightWhite :: Builder -> Builder
 brightWhite =
-  foreground (Builder.string "97")
+    foreground (Builder.fromString "97")
 {-# INLINE brightWhite #-}
 
 -- | RGB foreground.
 rgb :: Word8 -> Word8 -> Word8 -> Builder -> Builder
 rgb r g b =
-  foreground (Builder.string "38;2;" <> Builder.decimal r <> semi <> Builder.decimal g <> semi <> Builder.decimal b)
+    foreground (Builder.fromString "38;2;" <> decimal r <> semi <> decimal g <> semi <> decimal b)
 {-# INLINE rgb #-}
 
 foreground :: Builder -> Builder -> Builder
 foreground s =
-  surround s (Builder.string "39")
+    surround s (Builder.fromString "39")
 {-# INLINE foreground #-}
 
 -- | Black background.
 blackBg :: Builder -> Builder
 blackBg =
-  background (Builder.string "40")
+    background (Builder.fromString "40")
 {-# INLINE blackBg #-}
 
 -- | Red background.
 redBg :: Builder -> Builder
 redBg =
-  background (Builder.string "41")
+    background (Builder.fromString "41")
 {-# INLINE redBg #-}
 
 -- | Green background.
 greenBg :: Builder -> Builder
 greenBg =
-  background (Builder.string "42")
+    background (Builder.fromString "42")
 {-# INLINE greenBg #-}
 
 -- | Yellow background.
 yellowBg :: Builder -> Builder
 yellowBg =
-  background (Builder.string "43")
+    background (Builder.fromString "43")
 {-# INLINE yellowBg #-}
 
 -- | Blue background.
 blueBg :: Builder -> Builder
 blueBg =
-  background (Builder.string "44")
+    background (Builder.fromString "44")
 {-# INLINE blueBg #-}
 
 -- | Magenta background.
 magentaBg :: Builder -> Builder
 magentaBg =
-  background (Builder.string "45")
+    background (Builder.fromString "45")
 {-# INLINE magentaBg #-}
 
 -- | Cyan background.
 cyanBg :: Builder -> Builder
 cyanBg =
-  background (Builder.string "46")
+    background (Builder.fromString "46")
 {-# INLINE cyanBg #-}
 
 -- | White background.
 whiteBg :: Builder -> Builder
 whiteBg =
-  background (Builder.string "47")
+    background (Builder.fromString "47")
 {-# INLINE whiteBg #-}
 
 -- | Bright black background.
 brightBlackBg :: Builder -> Builder
 brightBlackBg =
-  background (Builder.string "100")
+    background (Builder.fromString "100")
 {-# INLINE brightBlackBg #-}
 
 -- | Bright red background.
 brightRedBg :: Builder -> Builder
 brightRedBg =
-  background (Builder.string "101")
+    background (Builder.fromString "101")
 {-# INLINE brightRedBg #-}
 
 -- | Bright green background.
 brightGreenBg :: Builder -> Builder
 brightGreenBg =
-  background (Builder.string "102")
+    background (Builder.fromString "102")
 {-# INLINE brightGreenBg #-}
 
 -- | Bright yellow background.
 brightYellowBg :: Builder -> Builder
 brightYellowBg =
-  background (Builder.string "103")
+    background (Builder.fromString "103")
 {-# INLINE brightYellowBg #-}
 
 -- | Bright blue background.
 brightBlueBg :: Builder -> Builder
 brightBlueBg =
-  background (Builder.string "104")
+    background (Builder.fromString "104")
 {-# INLINE brightBlueBg #-}
 
 -- | Bright magenta background.
 brightMagentaBg :: Builder -> Builder
 brightMagentaBg =
-  background (Builder.string "105")
+    background (Builder.fromString "105")
 {-# INLINE brightMagentaBg #-}
 
 -- | Bright cyan background.
 brightCyanBg :: Builder -> Builder
 brightCyanBg =
-  background (Builder.string "106")
+    background (Builder.fromString "106")
 {-# INLINE brightCyanBg #-}
 
 -- | Bright white background.
 brightWhiteBg :: Builder -> Builder
 brightWhiteBg =
-  background (Builder.string "107")
+    background (Builder.fromString "107")
 {-# INLINE brightWhiteBg #-}
 
 background :: Builder -> Builder -> Builder
 background s =
-  surround s (Builder.string "49")
+    surround s (Builder.fromString "49")
 {-# INLINE background #-}
 
 -- | RGB background.
 rgbBg :: Word8 -> Word8 -> Word8 -> Builder -> Builder
 rgbBg r g b =
-  background (Builder.string "48;2;" <> Builder.decimal r <> semi <> Builder.decimal g <> semi <> Builder.decimal b)
+    background (Builder.fromString "48;2;" <> decimal r <> semi <> decimal g <> semi <> decimal b)
 {-# INLINE rgbBg #-}
 
 -- | __Bold__ style (high intensity).
 bold :: Builder -> Builder
 bold =
-  surround (Builder.string "1") (Builder.string "22")
+    surround (Builder.fromString "1") (Builder.fromString "22")
 {-# INLINE bold #-}
 
 -- | Faint style (low intensity).
 faint :: Builder -> Builder
 faint =
-  surround (Builder.string "2") (Builder.string "22")
+    surround (Builder.fromString "2") (Builder.fromString "22")
 {-# INLINE faint #-}
 
 -- | /Italic/ style.
 italic :: Builder -> Builder
 italic =
-  surround (Builder.string "3") (Builder.string "23")
+    surround (Builder.fromString "3") (Builder.fromString "23")
 {-# INLINE italic #-}
 
 -- | U̲n̲d̲e̲r̲l̲i̲n̲e̲ style.
 underline :: Builder -> Builder
 underline =
-  surround (Builder.string "4") (Builder.string "24")
+    surround (Builder.fromString "4") (Builder.fromString "24")
 {-# INLINE underline #-}
 
 -- | D̳o̳u̳b̳l̳e̳ ̳u̳n̳d̳e̳r̳l̳i̳n̳e̳ style.
 doubleUnderline :: Builder -> Builder
 doubleUnderline =
-  surround (Builder.string "21") (Builder.string "24")
+    surround (Builder.fromString "21") (Builder.fromString "24")
 {-# INLINE doubleUnderline #-}
 
 -- | S̶t̶r̶i̶k̶e̶t̶h̶r̶o̶u̶g̶h̶ style.
 strikethrough :: Builder -> Builder
 strikethrough =
-  surround (Builder.string "9") (Builder.string "29")
+    surround (Builder.fromString "9") (Builder.fromString "29")
 {-# INLINE strikethrough #-}
 
 -- | Frame style.
 frame :: Builder -> Builder
 frame =
-  surround (Builder.string "51") (Builder.string "54")
+    surround (Builder.fromString "51") (Builder.fromString "54")
 {-# INLINE frame #-}
 
 -- | Encircle style.
 encircle :: Builder -> Builder
 encircle =
-  surround (Builder.string "52") (Builder.string "54")
+    surround (Builder.fromString "52") (Builder.fromString "54")
 {-# INLINE encircle #-}
 
 -- | O̅v̅e̅r̅l̅i̅n̅e̅ style.
 overline :: Builder -> Builder
 overline =
-  surround (Builder.string "53") (Builder.string "55")
+    surround (Builder.fromString "53") (Builder.fromString "55")
 {-# INLINE overline #-}
 
 --------------------------------------------------------------------------------
 
 surround :: Builder -> Builder -> Builder -> Builder
 surround open close text
-  | isatty = esc <> open <> m <> text <> esc <> close <> m
-  | otherwise = text
+    | isatty = esc <> open <> m <> text <> esc <> close <> m
+    | otherwise = text
 -- Don't inline before phase 1
 {-# NOINLINE [1] surround #-}
 
 esc :: Builder
 esc =
-  Builder.string "\ESC["
+    Builder.fromString "\ESC["
 
 m :: Builder
 m =
-  Builder.char 'm'
+    Builder.singleton 'm'
 
 semi :: Builder
 semi =
-  Builder.char ';'
+    Builder.singleton ';'
+
+decimal :: Word8 -> Builder
+decimal =
+    Builder.fromLazyText . Lazy.Builder.toLazyText . Lazy.Builder.decimal
 
 isatty :: Bool
 isatty =
-  unsafePerformIO (c_isatty 1) == 1
+    unsafePerformIO (c_isatty 1) == 1
 {-# NOINLINE isatty #-}
 
 foreign import ccall unsafe "isatty"
-  c_isatty :: CInt -> IO CInt
+    c_isatty :: CInt -> IO CInt
 
 -- Collapse surround/surround to a single surround before phase 1
 {-# RULES
 "surround/surround" [~1] forall a b c d s.
-  surround a b (surround c d s) =
-    surround (a <> semi <> c) (b <> semi <> d) s
-  #-}
+    surround a b (surround c d s) =
+        surround (a <> semi <> c) (b <> semi <> d) s
+    #-}
